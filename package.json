@@ -1,0 +1,40 @@
+{
+  "name": "te-mata-wananga-apparel-form",
+  "version": "1.0.0",
+  "description": "Te Mata Wānanga Apparel Order Form with automated workflow",
+  "main": "server.js",
+  "scripts": {
+    "setup": "node setup.js",
+    "dev": "node server.js",
+    "start": "node server.js",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage"
+  },
+  "dependencies": {
+    "@sendgrid/mail": "^7.7.0",
+    "googleapis": "^126.0.1",
+    "puppeteer": "^21.5.2",
+    "express": "^4.18.2",
+    "body-parser": "^1.20.2",
+    "cors": "^2.8.5"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "supertest": "^6.3.3",
+    "@jest/globals": "^29.7.0"
+  },
+  "engines": {
+    "node": "18.x"
+  },
+  "keywords": [
+    "netlify",
+    "functions",
+    "forms",
+    "email",
+    "pdf-generation",
+    "google-sheets"
+  ],
+  "author": "Te Mata Wānanga",
+  "license": "MIT"
+}

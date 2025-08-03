@@ -1,0 +1,1440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Te Mata Wānanga - Apakura Apparel Order Form</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+
+        .form-container {
+            width: 100%;
+            max-width: 800px;
+            padding: 40px 20px;
+            position: relative;
+        }
+
+        .progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.3);
+            width: 100%;
+            z-index: 1000;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #00d4aa, #00a8cc);
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+
+        .message {
+            padding: 1rem;
+            border-radius: 10px;
+            margin: 1rem 0;
+            display: none;
+            animation: slideDown 0.3s ease;
+            position: relative;
+            z-index: 1000;
+        }
+
+        .message.show {
+            display: block !important;
+            opacity: 1 !important;
+        }
+
+        .error-message {
+            background: rgba(220, 53, 69, 0.9);
+            color: white;
+            border: 1px solid rgba(220, 53, 69, 0.5);
+        }
+
+        .success-message {
+            background: rgba(40, 167, 69, 0.9);
+            color: white;
+            border: 1px solid rgba(40, 167, 69, 0.5);
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .form-input.error, .form-select.error {
+            border-color: #dc3545 !important;
+            background: rgba(220, 53, 69, 0.1) !important;
+        }
+
+        .size-btn.error {
+            border-color: #dc3545 !important;
+            background: rgba(220, 53, 69, 0.2) !important;
+        }
+
+        .question-screen {
+            display: none;
+            opacity: 0;
+            transform: translateY(30px);
+            animation: slideIn 0.6s ease forwards;
+            text-align: center;
+            min-height: 10vh;
+        }
+
+        .question-screen.active {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 300;
+            margin-bottom: 1rem;
+            background: linear-gradient(45deg, #fff, #e0e0e0);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        h2 {
+            font-size: 2rem;
+            font-weight: 300;
+            margin-bottom: 1rem;
+            line-height: 1.3;
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            margin-bottom: 1.5rem;
+        }
+
+        .form-input, .form-select {
+            width: 100%;
+            max-width: 400px;
+            padding: 1rem 1.5rem;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 50px;
+            color: white;
+            font-size: 1.1rem;
+            margin: 1rem 0;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(20px);
+        }
+
+        .form-input::placeholder {
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .form-input:focus, .form-select:focus {
+            outline: none;
+            border-color: rgba(255, 255, 255, 0.6);
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .form-select {
+            cursor: pointer;
+        }
+
+        .form-select option {
+            background: #764ba2;
+            color: white;
+        }
+
+        .apparel-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+            margin: 2rem 0;
+        }
+
+        .apparel-item {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            padding: 2rem;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            min-height: 400px;
+        }
+
+        .apparel-item:hover {
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.15);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        .apparel-image {
+            width: 240px;
+            height: 135px;
+            margin: 0 auto 1.5rem;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            transition: all 0.3s ease;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            overflow: hidden;
+            flex-shrink: 0;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .apparel-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 13px;
+            transition: transform 0.3s ease;
+        }
+
+        .apparel-image:hover img {
+            transform: scale(1.05);
+        }
+
+        .apparel-image::after {
+            content: '🔍';
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+        }
+
+        .apparel-image:hover::after {
+            opacity: 1;
+        }
+
+        /* Image Modal Styles */
+        .image-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            backdrop-filter: blur(10px);
+            animation: fadeIn 0.3s ease;
+        }
+
+        .image-modal.show {
+            display: flex;
+        }
+
+        .image-modal-content {
+            position: relative;
+            max-width: 90vw;
+            max-height: 90vh;
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            animation: scaleIn 0.3s ease;
+        }
+
+        .image-modal img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            display: block;
+            max-width: 80vw;
+            max-height: 80vh;
+        }
+
+        .image-modal-close {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 18px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            z-index: 2001;
+        }
+
+        .image-modal-close:hover {
+            background: rgba(220, 53, 69, 0.9);
+            transform: scale(1.1);
+        }
+
+        .image-modal-info {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(transparent, rgba(0, 0, 0, 0.8));
+            color: white;
+            padding: 2rem 1rem 1rem;
+            text-align: center;
+        }
+
+        .image-modal-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .image-modal-price {
+            font-size: 1.2rem;
+            color: #00d4aa;
+            font-weight: 600;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes scaleIn {
+            from { 
+                opacity: 0;
+                transform: scale(0.8);
+            }
+            to { 
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        /* Mobile adjustments for modal */
+        @media (max-width: 768px) {
+            .image-modal-content {
+                max-width: 95vw;
+                max-height: 95vh;
+                margin: 10px;
+            }
+            
+            .image-modal img {
+                max-width: 90vw;
+                max-height: 70vh;
+            }
+            
+            .image-modal-close {
+                top: 10px;
+                right: 10px;
+                width: 35px;
+                height: 35px;
+                font-size: 16px;
+            }
+            
+            .image-modal-info {
+                padding: 1.5rem 1rem 1rem;
+            }
+            
+            .image-modal-title {
+                font-size: 1.2rem;
+            }
+            
+            .image-modal-price {
+                font-size: 1rem;
+            }
+        }
+
+        .apparel-item h3 {
+            font-size: 1.4rem;
+            margin-bottom: 0.5rem;
+            color: #fff;
+        }
+
+        .price {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #00d4aa;
+            margin-bottom: 1rem;
+            text-shadow: 0 0 10px rgba(0, 212, 170, 0.3);
+        }
+
+        .size-selector {
+            display: flex;
+            gap: 0.5rem;
+            margin: 1rem 0;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .size-btn {
+            padding: 0.5rem 1rem;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            background: transparent;
+            color: white;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .size-btn:hover, .size-btn.selected {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: rgba(255, 255, 255, 0.6);
+        }
+
+        .quantity-selector {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+
+        .qty-btn {
+            width: 40px;
+            height: 40px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            background: transparent;
+            color: white;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1.2rem;
+        }
+
+        .qty-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: rgba(255, 255, 255, 0.6);
+        }
+
+        .qty-display {
+            font-size: 1.2rem;
+            min-width: 40px;
+            text-align: center;
+        }
+
+        .add-to-cart-btn {
+            padding: 0.8rem 2rem;
+            background: linear-gradient(45deg, #00d4aa, #00a8cc);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+            margin-top: 1rem;
+        }
+
+        .add-to-cart-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .next-btn {
+            padding: 1rem 2rem;
+            background: linear-gradient(45deg, #00d4aa, #00a8cc);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1.1rem;
+            margin-top: 2rem;
+        }
+
+        .next-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .next-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .back-btn {
+            padding: 1rem 2rem;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1.1rem;
+            margin-top: 2rem;
+            margin-right: 1rem;
+        }
+
+        .back-btn:hover {
+            transform: translateY(-2px);
+            background: rgba(255, 255, 255, 0.2);
+            border-color: rgba(255, 255, 255, 0.5);
+        }
+
+        .button-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .confirm-order-btn {
+            padding: 1rem 3rem;
+            background: linear-gradient(45deg, #28a745, #20c997);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-top: 2rem;
+            box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+        }
+
+        .confirm-order-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(40, 167, 69, 0.4);
+            background: linear-gradient(45deg, #20c997, #28a745);
+        }
+
+        .confirm-order-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .payment-option {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1.5rem;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 1rem 0;
+        }
+
+        .payment-option:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateY(-2px);
+        }
+
+        .payment-option.selected {
+            background: rgba(0, 212, 170, 0.2);
+            border: 2px solid rgba(0, 212, 170, 0.5);
+        }
+
+        .payment-option input[type="radio"] {
+            width: 20px;
+            height: 20px;
+            accent-color: #00d4aa;
+        }
+
+        .cart-summary {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 2rem;
+            margin: 2rem 0;
+            text-align: left;
+        }
+
+        .cart-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .cart-item:last-child {
+            border-bottom: none;
+        }
+
+        .cart-total {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #00d4aa;
+            text-align: center;
+            margin-top: 1.5rem;
+            padding: 1rem;
+            background: rgba(0, 212, 170, 0.1);
+            border-radius: 15px;
+            border: 1px solid rgba(0, 212, 170, 0.3);
+        }
+
+        .success-screen {
+            text-align: center;
+            padding: 4rem 2rem;
+        }
+
+        .success-icon {
+            width: 100px;
+            height: 100px;
+            background: linear-gradient(45deg, #00d4aa, #00a8cc);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 2rem;
+            font-size: 3rem;
+        }
+
+        @media (max-width: 768px) {
+            h1 { font-size: 2rem; }
+            h2 { font-size: 1.5rem; }
+            .apparel-grid { grid-template-columns: 1fr; }
+            .form-container { padding: 20px 15px; }
+            .apparel-image {
+                width: 200px;
+                height: 112px;
+            }
+            .button-container {
+                flex-direction: column;
+            }
+            .back-btn {
+                margin-right: 0;
+                margin-top: 0;
+            }
+            .next-btn {
+                margin-top: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="progress-bar">
+        <div class="progress-fill" id="progressFill"></div>
+    </div>
+
+    <!-- Image Modal -->
+    <div class="image-modal" id="imageModal" onclick="closeImageModal(event)">
+        <div class="image-modal-content" onclick="event.stopPropagation()">
+            <button class="image-modal-close" onclick="closeImageModal()">&times;</button>
+            <img id="modalImage" src="" alt="">
+            <div class="image-modal-info">
+                <div class="image-modal-title" id="modalTitle"></div>
+                <div class="image-modal-price" id="modalPrice"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="form-container">
+        <!-- Welcome Screen -->
+        <div class="question-screen active" id="screen0">
+            <h1>Te Mata Wānanga - Apakura</h1>
+            <h2>Apparel Order Form</h2>
+            <p class="subtitle">Welcome! Let's get you set up with your apparel order.</p>
+            <button class="next-btn" onclick="nextScreen()">Get Started</button>
+        </div>
+
+        <!-- Kaimahi Name Screen -->
+        <div class="question-screen" id="screen1">
+            <h2>Kaimahi name</h2>
+            <div class="message error-message" id="error-screen1"></div>
+            <input type="text" class="form-input" id="kaimahiName" placeholder="Enter your Kaimahi name" autocomplete="name">
+            <div class="button-container">
+                <button class="back-btn" onclick="previousScreen()">Back</button>
+                <button class="next-btn" onclick="nextScreen()">Next</button>
+            </div>
+        </div>
+
+        <!-- Employee Number Screen -->
+        <div class="question-screen" id="screen2">
+            <h2>Employee number</h2>
+            <div class="message error-message" id="error-screen2"></div>
+            <input type="text" class="form-input" id="employeeNumber" placeholder="Enter your employee number" autocomplete="username">
+            <div class="button-container">
+                <button class="back-btn" onclick="previousScreen()">Back</button>
+                <button class="next-btn" onclick="nextScreen()">Next</button>
+            </div>
+        </div>
+
+        <!-- Campus Screen -->
+        <div class="question-screen" id="screen3">
+            <h2>Campus</h2>
+            <div class="message error-message" id="error-screen3"></div>
+            <input type="text" class="form-input" id="campus" value="Apakura" readonly>
+            <div class="button-container">
+                <button class="back-btn" onclick="previousScreen()">Back</button>
+                <button class="next-btn" onclick="nextScreen()">Next</button>
+            </div>
+        </div>
+
+        <!-- Email Screen -->
+        <div class="question-screen" id="screen4">
+            <h2>Email address</h2>
+            <div class="message error-message" id="error-screen4"></div>
+            <input type="email" class="form-input" id="email" placeholder="Enter your email address" autocomplete="email">
+            <div class="button-container">
+                <button class="back-btn" onclick="previousScreen()">Back</button>
+                <button class="next-btn" onclick="nextScreen()">Next</button>
+            </div>
+        </div>
+
+        <!-- Apparel Selection Screen -->
+        <div class="question-screen" id="screen5">
+            <h2>Now, what would you like to order?</h2>
+            <div class="message error-message" id="error-screen5"></div>
+            <div class="message success-message" id="success-screen5"></div>
+
+            <div class="apparel-grid">
+                <!-- T-Shirt -->
+                <div class="apparel-item">
+                    <div class="apparel-image" onclick="openImageModal('images/tshirt.jpg', 'T-Shirt', '$26.68')">
+                        <img src="images/t-shirt.png" alt="Te Mata Wānanga T-Shirt" onerror="this.style.display='none'; this.parentElement.innerHTML='👕';">
+                    </div>
+                    <h3>T-Shirt</h3>
+                    <div class="price">$26.68</div>
+                    <div class="size-selector" data-item="tshirt">
+                        <button class="size-btn" data-size="S" onclick="selectSize('tshirt', 'S', this)">S</button>
+                        <button class="size-btn" data-size="M" onclick="selectSize('tshirt', 'M', this)">M</button>
+                        <button class="size-btn" data-size="L" onclick="selectSize('tshirt', 'L', this)">L</button>
+                        <button class="size-btn" data-size="XL" onclick="selectSize('tshirt', 'XL', this)">XL</button>
+                        <button class="size-btn" data-size="XXL" onclick="selectSize('tshirt', 'XXL', this)">XXL</button>
+                        <button class="size-btn" data-size="3XL" onclick="selectSize('tshirt', '3XL', this)">3XL</button>
+                        <button class="size-btn" data-size="5XL" onclick="selectSize('tshirt', '5XL', this)">5XL</button>
+                    </div>
+                    <div class="quantity-selector">
+                        <button class="qty-btn" onclick="changeQty('tshirt', -1)">-</button>
+                        <span class="qty-display" id="tshirt-qty">0</span>
+                        <button class="qty-btn" onclick="changeQty('tshirt', 1)">+</button>
+                    </div>
+                    <button class="add-to-cart-btn" onclick="addToCart('tshirt', 'T-Shirt', 26.68)">Add to Cart</button>
+                </div>
+
+                <!-- Crewneck -->
+                <div class="apparel-item">
+                    <div class="apparel-image" onclick="openImageModal('images/crewneck.jpg', 'Crewneck', '$53.94')">
+                        <img src="images/crewneck.png" alt="Te Mata Wānanga Crewneck" onerror="this.style.display='none'; this.parentElement.innerHTML='🧥';">
+                    </div>
+                    <h3>Crewneck</h3>
+                    <div class="price">$53.94</div>
+                    <div class="size-selector" data-item="crewneck">
+                        <button class="size-btn" data-size="S" onclick="selectSize('crewneck', 'S', this)">S</button>
+                        <button class="size-btn" data-size="M" onclick="selectSize('crewneck', 'M', this)">M</button>
+                        <button class="size-btn" data-size="L" onclick="selectSize('crewneck', 'L', this)">L</button>
+                        <button class="size-btn" data-size="XL" onclick="selectSize('crewneck', 'XL', this)">XL</button>
+                        <button class="size-btn" data-size="XXL" onclick="selectSize('crewneck', 'XXL', this)">XXL</button>
+                        <button class="size-btn" data-size="3XL" onclick="selectSize('crewneck', '3XL', this)">3XL</button>
+                        <button class="size-btn" data-size="5XL" onclick="selectSize('crewneck', '5XL', this)">5XL</button>
+                    </div>
+                    <div class="quantity-selector">
+                        <button class="qty-btn" onclick="changeQty('crewneck', -1)">-</button>
+                        <span class="qty-display" id="crewneck-qty">0</span>
+                        <button class="qty-btn" onclick="changeQty('crewneck', 1)">+</button>
+                    </div>
+                    <button class="add-to-cart-btn" onclick="addToCart('crewneck', 'Crewneck', 53.94)">Add to Cart</button>
+                </div>
+            </div>
+
+            <div class="button-container">
+                <button class="back-btn" onclick="previousScreen()">Back</button>
+                <button class="next-btn" onclick="nextScreen()">Continue to Payment</button>
+            </div>
+        </div>
+
+        <!-- Payment Type Screen -->
+        <div class="question-screen" id="screen6">
+            <h2>Payment Type</h2>
+            <p class="subtitle">How would you like to pay for your order?</p>
+            <div class="message error-message" id="error-screen6"></div>
+            
+            <div style="display: flex; flex-direction: column; gap: 1.5rem; max-width: 400px; margin: 0 auto;">
+                <label class="payment-option" onclick="selectPaymentType('plan')">
+                    <input type="radio" name="paymentType" value="plan">
+                    <div>
+                        <div style="font-size: 1.2rem; font-weight: 600;">Payment Plan</div>
+                        <div style="font-size: 0.9rem; opacity: 0.8;">Split into multiple payments</div>
+                    </div>
+                </label>
+                
+                <label class="payment-option" onclick="selectPaymentType('full')">
+                    <input type="radio" name="paymentType" value="full">
+                    <div>
+                        <div style="font-size: 1.2rem; font-weight: 600;">Payment in Full</div>
+                        <div style="font-size: 0.9rem; opacity: 0.8;">Pay entire amount upfront</div>
+                    </div>
+                </label>
+            </div>
+
+            <div id="paymentDateSelection" style="display: none; margin-top: 2rem;"></div>
+
+            <div class="button-container">
+                <button class="back-btn" onclick="previousScreen()">Back</button>
+                <button class="next-btn" onclick="nextScreen()">Review Order</button>
+            </div>
+        </div>
+
+        <!-- Cart Review Screen -->
+        <div class="question-screen" id="screen7">
+            <h2>Review your order</h2>
+            <div class="message error-message" id="error-screen7"></div>
+            <div class="cart-summary" id="cartSummary"></div>
+            <div class="button-container">
+                <button class="back-btn" onclick="previousScreen()">Back</button>
+                <button class="confirm-order-btn" onclick="confirmOrder()" id="confirmBtn">Confirm Order</button>
+            </div>
+        </div>
+
+        <!-- Success Screen -->
+        <div class="question-screen" id="screen8">
+            <div class="success-screen">
+                <div class="success-icon">✓</div>
+                <h2>Kia ora! Your order has been submitted</h2>
+                <p class="subtitle">Thank you for your order. You will receive a confirmation email shortly.</p>
+                <button class="next-btn" onclick="location.reload()" style="margin-top: 2rem;">Start New Order</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Simplified application state - NO localStorage
+        let currentScreen = 0;
+        let cart = [];
+        let quantities = { tshirt: 0, crewneck: 0 };
+        let selectedSizes = { tshirt: '', crewneck: '' };
+        let formData = {};
+        let selectedPaymentType = '';
+        let selectedPaymentDate = '';
+
+        // Utility functions
+        function showMessage(screenId, message, type = 'error') {
+            console.log(`${type.toUpperCase()}: ${message}`);
+            
+            const messageElement = document.getElementById(`${type}-screen${screenId}`);
+            if (messageElement) {
+                messageElement.textContent = message;
+                messageElement.classList.add('show');
+                
+                // Auto-hide after delay
+                setTimeout(() => {
+                    messageElement.classList.remove('show');
+                }, type === 'error' ? 5000 : 3000);
+            }
+        }
+
+        function clearMessages(screenId) {
+            ['error', 'success'].forEach(type => {
+                const messageElement = document.getElementById(`${type}-screen${screenId}`);
+                if (messageElement) {
+                    messageElement.classList.remove('show');
+                }
+            });
+        }
+
+        function markFieldError(fieldId) {
+            const field = document.getElementById(fieldId);
+            if (field) {
+                field.classList.add('error');
+                setTimeout(() => {
+                    field.classList.remove('error');
+                }, 3000);
+            }
+        }
+
+        function validateEmail(email) {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return emailRegex.test(email);
+        }
+
+        // Size selection
+        function selectSize(item, size, buttonElement) {
+            console.log(`Selecting size ${size} for ${item}`);
+            
+            clearMessages(5);
+            
+            const sizeSelector = buttonElement.parentElement;
+            sizeSelector.querySelectorAll('.size-btn').forEach(btn => {
+                btn.classList.remove('selected', 'error');
+            });
+            
+            buttonElement.classList.add('selected');
+            selectedSizes[item] = size;
+            
+            showMessage(5, `Size ${size} selected for ${item}`, 'success');
+        }
+
+        // Quantity management
+        function changeQty(item, change) {
+            const newQty = Math.max(0, quantities[item] + change);
+            quantities[item] = newQty;
+            
+            const qtyElement = document.getElementById(item + '-qty');
+            if (qtyElement) {
+                qtyElement.textContent = newQty;
+            }
+        }
+
+        // Add to cart
+        function addToCart(itemId, itemName, price) {
+            console.log(`Adding to cart: ${itemId}, ${itemName}, ${price}`);
+            
+            clearMessages(5);
+
+            if (!selectedSizes[itemId]) {
+                const sizeSelector = document.querySelector(`.size-selector[data-item="${itemId}"]`);
+                if (sizeSelector) {
+                    sizeSelector.querySelectorAll('.size-btn').forEach(btn => {
+                        btn.classList.add('error');
+                    });
+                }
+                showMessage(5, 'Please select a size first!', 'error');
+                return;
+            }
+            
+            if (quantities[itemId] === 0) {
+                showMessage(5, 'Please select a quantity greater than 0!', 'error');
+                return;
+            }
+
+            const selectedSize = selectedSizes[itemId];
+            const existingIndex = cart.findIndex(item => 
+                item.id === itemId && item.size === selectedSize
+            );
+
+            if (existingIndex > -1) {
+                cart[existingIndex].quantity += quantities[itemId];
+            } else {
+                cart.push({
+                    id: itemId,
+                    name: itemName,
+                    size: selectedSize,
+                    quantity: quantities[itemId],
+                    price: price
+                });
+            }
+
+            // Reset selections
+            quantities[itemId] = 0;
+            const qtyElement = document.getElementById(itemId + '-qty');
+            if (qtyElement) qtyElement.textContent = '0';
+            
+            const selectedBtn = document.querySelector(`.size-selector[data-item="${itemId}"] .size-btn.selected`);
+            if (selectedBtn) selectedBtn.classList.remove('selected');
+            selectedSizes[itemId] = '';
+
+            showMessage(5, `${itemName} (${selectedSize}) added to cart!`, 'success');
+        }
+
+        // Payment type selection
+        function selectPaymentType(type) {
+            console.log(`Selecting payment type: ${type}`);
+            
+            clearMessages(6);
+            
+            const paymentOptions = document.querySelectorAll('.payment-option');
+            const radios = document.querySelectorAll('input[name="paymentType"]');
+            
+            paymentOptions.forEach(option => option.classList.remove('selected'));
+            radios.forEach(radio => radio.checked = false);
+            
+            const selectedOption = document.querySelector(`input[value="${type}"]`);
+            if (selectedOption) {
+                selectedOption.checked = true;
+                selectedOption.closest('.payment-option').classList.add('selected');
+            }
+            
+            selectedPaymentType = type;
+            
+            const paymentDateSelection = document.getElementById('paymentDateSelection');
+            
+            if (type === 'plan') {
+                selectedPaymentDate = '13/08/2025'; // Default first payment date
+                paymentDateSelection.style.display = 'block';
+                paymentDateSelection.innerHTML = `
+                    <h3 style="margin-bottom: 1rem;">Payment Plan Details</h3>
+                    <div style="background: rgba(0, 212, 170, 0.1); padding: 1rem; border-radius: 10px; text-align: left;">
+                        <p><strong>Payment 1:</strong> 13/08/2025 (33%)</p>
+                        <p><strong>Payment 2:</strong> 27/08/2025 (33%)</p>
+                        <p><strong>Payment 3:</strong> 10/09/2025 (34%)</p>
+                        <p style="font-size: 0.9rem; opacity: 0.8; margin-top: 0.5rem;">
+                            <strong>All payments must be completed by 10/09/2025</strong>
+                        </p>
+                    </div>
+                `;
+            } else if (type === 'full') {
+                selectedPaymentDate = '';
+                paymentDateSelection.style.display = 'block';
+                paymentDateSelection.innerHTML = `
+                    <h3 style="margin-bottom: 1rem;">Select Payment Date</h3>
+                    <select class="form-select" id="paymentDate" style="max-width: 300px;" onchange="selectedPaymentDate = this.value; clearMessages(6);">
+                        <option value="">Choose payment date...</option>
+                        <option value="13/08/2025">13/08/2025</option>
+                        <option value="27/08/2025">27/08/2025</option>
+                        <option value="10/09/2025">10/09/2025</option>
+                    </select>
+                `;
+            }
+        }
+
+        // Form validation
+        function validateCurrentScreen() {
+            clearMessages(currentScreen);
+            
+            try {
+                switch(currentScreen) {
+                    case 1:
+                        const kaimahiName = document.getElementById('kaimahiName').value.trim();
+                        if (!kaimahiName) {
+                            markFieldError('kaimahiName');
+                            throw new Error('Please enter your Kaimahi name!');
+                        }
+                        if (kaimahiName.length < 2) {
+                            markFieldError('kaimahiName');
+                            throw new Error('Kaimahi name must be at least 2 characters long!');
+                        }
+                        formData.kaimahiName = kaimahiName;
+                        break;
+                        
+                    case 2:
+                        const employeeNumber = document.getElementById('employeeNumber').value.trim();
+                        if (!employeeNumber) {
+                            markFieldError('employeeNumber');
+                            throw new Error('Please enter your employee number!');
+                        }
+                        if (employeeNumber.length < 3) {
+                            markFieldError('employeeNumber');
+                            throw new Error('Employee number must be at least 3 characters long!');
+                        }
+                        formData.employeeNumber = employeeNumber;
+                        break;
+                        
+                    case 3:
+                        const campus = document.getElementById('campus').value;
+                        if (!campus) {
+                            markFieldError('campus');
+                            throw new Error('Campus field is required!');
+                        }
+                        formData.campus = campus;
+                        break;
+                        
+                    case 4:
+                        const email = document.getElementById('email').value.trim();
+                        if (!email) {
+                            markFieldError('email');
+                            throw new Error('Please enter your email address!');
+                        }
+                        if (!validateEmail(email)) {
+                            markFieldError('email');
+                            throw new Error('Please enter a valid email address!');
+                        }
+                        formData.email = email;
+                        break;
+                        
+                    case 5:
+                        if (cart.length === 0) {
+                            throw new Error('Please add at least one item to your cart before continuing!');
+                        }
+                        break;
+                        
+                    case 6:
+                        if (!selectedPaymentType) {
+                            throw new Error('Please select a payment type!');
+                        }
+                        if (selectedPaymentType === 'full' && !selectedPaymentDate) {
+                            markFieldError('paymentDate');
+                            throw new Error('Please select a payment date for full payment!');
+                        }
+                        break;
+                        
+                    case 7:
+                        if (cart.length === 0) {
+                            throw new Error('Your cart is empty. Please go back and add items.');
+                        }
+                        break;
+                }
+                return true;
+                
+            } catch (error) {
+                console.error('Validation error:', error);
+                showMessage(currentScreen, error.message, 'error');
+                return false;
+            }
+        }
+
+        // Navigation
+        function nextScreen() {
+            console.log(`Attempting to go from screen ${currentScreen} to ${currentScreen + 1}`);
+            
+            if (!validateCurrentScreen()) {
+                console.log('Validation failed, staying on current screen');
+                return;
+            }
+            
+            document.getElementById(`screen${currentScreen}`).classList.remove('active');
+            currentScreen++;
+            
+            const nextScreenElement = document.getElementById(`screen${currentScreen}`);
+            if (nextScreenElement) {
+                nextScreenElement.classList.add('active');
+                updateProgress();
+                
+                if (currentScreen === 7) {
+                    updateCartDisplay();
+                }
+                
+                console.log(`Successfully moved to screen ${currentScreen}`);
+            } else {
+                console.error(`Screen ${currentScreen} not found`);
+            }
+        }
+
+        function previousScreen() {
+            if (currentScreen <= 0) return;
+
+            clearMessages(currentScreen);
+
+            document.getElementById(`screen${currentScreen}`).classList.remove('active');
+            currentScreen--;
+            document.getElementById(`screen${currentScreen}`).classList.add('active');
+            updateProgress();
+            
+            console.log(`Moved back to screen ${currentScreen}`);
+        }
+
+        // Cart management
+        function removeFromCart(index) {
+            if (index >= 0 && index < cart.length) {
+                cart.splice(index, 1);
+                updateCartDisplay();
+                showMessage(7, 'Item removed from cart', 'success');
+            }
+        }
+
+        function calculateTotal() {
+            return cart.reduce((total, item) => total + (item.price * item.quantity), 0);
+        }
+
+        function updateCartDisplay() {
+            const cartSummary = document.getElementById('cartSummary');
+            if (!cartSummary) return;
+
+            if (cart.length === 0) {
+                cartSummary.innerHTML = '<p style="text-align: center; opacity: 0.7;">Your cart is empty</p>';
+                return;
+            }
+
+            let html = '<h3>Your Order:</h3>';
+            cart.forEach((item, index) => {
+                html += `
+                    <div class="cart-item">
+                        <div>
+                            <strong>${item.name}</strong><br>
+                            Size: ${item.size} | Quantity: ${item.quantity}
+                        </div>
+                        <div>
+                            $${(item.price * item.quantity).toFixed(2)}
+                            <button onclick="removeFromCart(${index})" style="margin-left: 10px; padding: 5px; background: rgba(220, 53, 69, 0.8); color: white; border: none; border-radius: 5px; cursor: pointer;">Remove</button>
+                        </div>
+                    </div>
+                `;
+            });
+
+            const total = calculateTotal();
+            html += `<div class="cart-total">Total: $${total.toFixed(2)}</div>`;
+
+            if (selectedPaymentType === 'plan') {
+                const thirdAmount = (total / 3).toFixed(2);
+                const remainderAmount = (total - (thirdAmount * 2)).toFixed(2);
+                html += `
+                    <div style="margin-top: 1rem; padding: 1rem; background: rgba(0, 212, 170, 0.1); border-radius: 10px;">
+                        <h4>Payment Plan:</h4>
+                        <p><strong>Payment 1:</strong> 13/08/2025 - $${thirdAmount} (33%)</p>
+                        <p><strong>Payment 2:</strong> 27/08/2025 - $${thirdAmount} (33%)</p>
+                        <p><strong>Payment 3:</strong> 10/09/2025 - $${remainderAmount} (34%)</p>
+                    </div>
+                `;
+            } else if (selectedPaymentType === 'full' && selectedPaymentDate) {
+                html += `
+                    <div style="margin-top: 1rem; padding: 1rem; background: rgba(0, 212, 170, 0.1); border-radius: 10px;">
+                        <h4>Payment in Full:</h4>
+                        <p>Payment Date: ${selectedPaymentDate}</p>
+                        <p>Amount: $${total.toFixed(2)}</p>
+                    </div>
+                `;
+            }
+
+            cartSummary.innerHTML = html;
+        }
+
+        // Order confirmation - Updated for Replit
+        async function confirmOrder() {
+            console.log('Confirming order...');
+            
+            if (!validateCurrentScreen()) return;
+
+            const confirmBtn = document.getElementById('confirmBtn');
+            if (confirmBtn) {
+                confirmBtn.disabled = true;
+                confirmBtn.textContent = 'Processing...';
+            }
+
+            try {
+                // Generate order data
+                const orderNumber = 'TMW-' + Date.now();
+                const orderData = {
+                    orderNumber: orderNumber,
+                    kaimahiName: formData.kaimahiName,
+                    employeeNumber: formData.employeeNumber,
+                    campus: formData.campus,
+                    email: formData.email,
+                    items: cart, // Send as array, not JSON string
+                    total: calculateTotal().toFixed(2),
+                    paymentType: selectedPaymentType,
+                    paymentDate: selectedPaymentDate || 'N/A',
+                    timestamp: new Date().toISOString()
+                };
+
+                console.log('Order data:', orderData);
+
+                // Call Netlify Function (works in Replit too)
+                console.log('Calling submit-order function...');
+                
+                const response = await fetch('/api/submit-order', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(orderData)
+                });
+
+                console.log('Function response status:', response.status);
+                
+                const result = await response.json();
+                console.log('Function response:', result);
+
+                if (result.success) {
+                    // Success - proceed to success screen
+                    document.getElementById(`screen${currentScreen}`).classList.remove('active');
+                    currentScreen = 8;
+                    document.getElementById(`screen${currentScreen}`).classList.add('active');
+                    updateProgress();
+                    
+                    // Add order summary to success screen
+                    displayOrderSummary(orderData);
+                } else {
+                    throw new Error(result.error || 'Unknown error occurred');
+                }
+
+            } catch (error) {
+                console.error('Error confirming order:', error);
+                
+                // Show error message
+                showMessage(7, `Submission failed: ${error.message}. Please try again.`, 'error');
+                
+                // Reset button
+                if (confirmBtn) {
+                    confirmBtn.disabled = false;
+                    confirmBtn.textContent = 'Confirm Order';
+                }
+            }
+        }
+
+        function displayOrderSummary(orderData) {
+            const successScreen = document.querySelector('#screen8 .success-screen');
+            if (!successScreen) return;
+
+            // Add order summary after the existing content
+            const summaryHtml = `
+                <div style="background: rgba(255, 255, 255, 0.1); padding: 2rem; border-radius: 15px; margin-top: 2rem; text-align: left; max-width: 500px; margin-left: auto; margin-right: auto;">
+                    <h3 style="text-align: center; margin-bottom: 1rem;">Order Summary</h3>
+                    <p><strong>Order Number:</strong> ${orderData.orderNumber}</p>
+                    <p><strong>Name:</strong> ${orderData.kaimahiName}</p>
+                    <p><strong>Employee #:</strong> ${orderData.employeeNumber}</p>
+                    <p><strong>Email:</strong> ${orderData.email}</p>
+                    <p><strong>Total:</strong> $${orderData.total}</p>
+                    <p><strong>Payment:</strong> ${orderData.paymentType === 'plan' ? 'Payment Plan' : 'Payment in Full'}</p>
+                    ${orderData.paymentDate !== 'N/A' ? `<p><strong>Payment Date:</strong> ${orderData.paymentDate}</p>` : ''}
+                    <div style="margin-top: 1rem; padding: 1rem; background: rgba(0, 212, 170, 0.1); border-radius: 10px;">
+                        <p style="margin: 0; font-size: 0.9rem;"><strong>Important:</strong> Please check your email for the confirmation and salary deduction form.</p>
+                    </div>
+                </div>
+            `;
+
+            // Insert summary before the "Start New Order" button
+            const startNewBtn = successScreen.querySelector('.next-btn');
+            if (startNewBtn) {
+                startNewBtn.insertAdjacentHTML('beforebegin', summaryHtml);
+            }
+        }
+
+        function updateProgress() {
+            const totalScreens = 8;
+            const progress = (currentScreen / totalScreens) * 100;
+            const progressFill = document.getElementById('progressFill');
+            if (progressFill) {
+                progressFill.style.width = progress + '%';
+            }
+        }
+
+        // Image Modal Functions
+        function openImageModal(imageSrc, title, price) {
+            console.log('Opening image modal:', imageSrc, title, price);
+            
+            const modal = document.getElementById('imageModal');
+            const modalImage = document.getElementById('modalImage');
+            const modalTitle = document.getElementById('modalTitle');
+            const modalPrice = document.getElementById('modalPrice');
+            
+            // Show loading state
+            modalImage.style.opacity = '0.5';
+            modalTitle.textContent = 'Loading...';
+            modalPrice.textContent = '';
+            
+            // Show modal first
+            modal.classList.add('show');
+            
+            // Prevent body scrolling when modal is open
+            document.body.style.overflow = 'hidden';
+            
+            // Load the image
+            const tempImg = new Image();
+            tempImg.onload = function() {
+                // Image loaded successfully
+                modalImage.src = imageSrc;
+                modalImage.alt = title;
+                modalImage.style.opacity = '1';
+                modalTitle.textContent = title;
+                modalPrice.textContent = price;
+            };
+            
+            tempImg.onerror = function() {
+                // Image failed to load
+                console.error('Failed to load modal image:', imageSrc);
+                modalImage.style.opacity = '1';
+                modalTitle.textContent = title;
+                modalPrice.textContent = price;
+                showMessage(currentScreen, 'Failed to load full-size image', 'error');
+            };
+            
+            tempImg.src = imageSrc;
+            
+            // Handle escape key
+            document.addEventListener('keydown', handleEscapeKey);
+        }
+
+        function closeImageModal(event) {
+            // If event is provided and the click was on the modal content, don't close
+            if (event && event.target.closest('.image-modal-content') && !event.target.classList.contains('image-modal-close')) {
+                return;
+            }
+            
+            console.log('Closing image modal');
+            
+            const modal = document.getElementById('imageModal');
+            modal.classList.remove('show');
+            
+            // Restore body scrolling
+            document.body.style.overflow = '';
+            
+            // Remove escape key listener
+            document.removeEventListener('keydown', handleEscapeKey);
+        }
+
+        function handleEscapeKey(event) {
+            if (event.key === 'Escape') {
+                closeImageModal();
+            }
+        }
+
+        // Close modal when clicking outside of it
+        function handleModalClick(event) {
+            const modal = document.getElementById('imageModal');
+            if (event.target === modal) {
+                closeImageModal();
+            }
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Application initialized');
+            updateProgress();
+            
+            // Add global error handling
+            window.addEventListener('error', function(event) {
+                console.error('Global error:', event.error);
+                showMessage(currentScreen, 'An unexpected error occurred. Please try again.', 'error');
+            });
+
+            // Set up modal event listeners
+            const imageModal = document.getElementById('imageModal');
+            if (imageModal) {
+                imageModal.addEventListener('click', function(event) {
+                    // Close modal if clicking on the background (not the content)
+                    if (event.target === imageModal) {
+                        closeImageModal();
+                    }
+                });
+            }
+
+            // Add loading states for images
+            const productImages = document.querySelectorAll('.apparel-image img');
+            productImages.forEach(img => {
+                img.addEventListener('load', function() {
+                    this.style.opacity = '1';
+                });
+                
+                img.addEventListener('error', function() {
+                    console.log('Image failed to load:', this.src);
+                    // The onerror attribute in HTML will handle the fallback
+                });
+            });
+        });
+    </script>
+</body>
+</html>
