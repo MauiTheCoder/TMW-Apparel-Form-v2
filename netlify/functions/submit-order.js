@@ -3,7 +3,13 @@ const sgMail = require("@sendgrid/mail");
 const { google } = require("googleapis");
 
 // Configure SendGrid
-sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+console.log("SENDGRID_API_KEY exists:", !!process.env.SENDGRID_API_KEY);
+console.log("SENDGRID_API_KEY starts with SG:", process.env.SENDGRID_API_KEY?.startsWith('SG.'));
+if (process.env.SENDGRID_API_KEY) {
+  sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+} else {
+  console.error("SENDGRID_API_KEY environment variable is not set!");
+}
 
 // Configure Google Sheets
 const sheets = google.sheets("v4");
