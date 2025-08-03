@@ -1,8 +1,12 @@
-// netlify/functions/submit-order.js - Simplified for Railway
+// netlify/functions/submit-order.js - With Google Sheets integration
 const sgMail = require("@sendgrid/mail");
+const { google } = require("googleapis");
 
 // Configure SendGrid
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+
+// Configure Google Sheets
+const sheets = google.sheets("v4");
 
 exports.handler = async (event, context) => {
   // Enable CORS
@@ -76,6 +80,11 @@ exports.handler = async (event, context) => {
     console.log("Sending confirmation email...");
     await sendConfirmationEmail(orderData);
     console.log("Email sent successfully");
+
+    // Update Google Sheets
+    console.log("Updating spreadsheet...");
+    await updateSpreadsheet(orderData);
+    console.log("Spreadsheet updated successfully");
 
     return {
       statusCode: 200,
@@ -192,4 +201,53 @@ async function sendConfirmationEmail(orderData) {
   };
 
   await sgMail.send(msg);
+}
+
+async function updateSpreadsheet(orderData) {
+  try {
+    // Set up Google Sheets authentication
+    const auth = new google.auth.GoogleAuth({
+      credentials: JSON.parse(process.env.GOOGLE_SHEETS_CREDENTIALS),
+      scopes: ["https://www.googleapis.com/auth/spreadsheets"],
+    });
+
+    const authClient = await auth.getClient();
+    google.options({ auth: authClient });
+
+    // Prepare data row
+    const itemsText = orderData.items
+      .map((item) => `${item.name} (${item.size}) x${item.quantity}`)
+      .join(", ");
+
+    const row = [
+      orderData.orderNumber,
+      orderData.timestamp,
+      orderData.orderDate,
+      orderData.kaimahiName,
+      orderData.employeeNumber,
+      orderData.campus,
+      orderData.email,
+      itemsText,
+      orderData.total.toFixed(2),
+      orderData.paymentType,
+      orderData.paymentDate,
+      "Pending", // Status
+      "", // Notes
+    ];
+
+    // Append to spreadsheet
+    await sheets.spreadsheets.values.append({
+      spreadsheetId: "1BPVSMx4ARWJqDcRXf0OQ52u3Ij8AhuKPDTaNLQokiRs",
+      range: "Sheet1!A:M", // Adjust range as needed
+      valueInputOption: "USER_ENTERED",
+      resource: {
+        values: [row],
+      },
+    });
+
+    console.log("Successfully added order to spreadsheet");
+  } catch (error) {
+    console.error("Error updating spreadsheet:", error);
+    // Don't throw error - we don't want to fail the entire process if spreadsheet update fails
+  }
 }
