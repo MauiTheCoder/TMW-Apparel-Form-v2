@@ -3,8 +3,8 @@ const cors = require('cors');
 const bodyParser = require('body-parser');
 const path = require('path');
 
-// Import our Netlify function
-const submitOrder = require('./netlify/functions/submit-order');
+// Import our Netlify function - temporarily disabled for debugging
+// const submitOrder = require('./netlify/functions/submit-order');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -37,14 +37,18 @@ app.post('/.netlify/functions/submit-order', async (req, res) => {
 
     const context = {};
 
-    // Call our function
-    console.log('⚙️ Processing order...');
-    const result = await submitOrder.handler(event, context);
+    // Mock response for debugging
+    console.log('⚙️ Processing order (mock mode)...');
+    
+    const mockOrderNumber = `TMW-${Date.now()}`;
+    console.log('✅ Order processed successfully (mock)');
 
-    console.log('✅ Order processed successfully');
-
-    // Send response
-    res.status(result.statusCode).json(JSON.parse(result.body));
+    // Send mock response
+    res.status(200).json({
+      success: true,
+      message: "Order processed successfully (debug mode)",
+      orderNumber: mockOrderNumber
+    });
 
   } catch (error) {
     console.error('❌ Error processing submission:', error);
