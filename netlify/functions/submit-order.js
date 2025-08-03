@@ -199,7 +199,7 @@ async function sendConfirmationEmail(orderData) {
   const msg = {
     to: orderData.email,
     from: {
-      email: process.env.FROM_EMAIL || "orders@twoa.ac.nz",
+      email: process.env.FROM_EMAIL || "leon.green@twoa.ac.nz",
       name: "Te Mata Wānanga - Apakura",
     },
     subject: `Order Confirmation - ${orderData.orderNumber} - Te Mata Wānanga Apparel`,
