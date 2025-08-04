@@ -1,6 +1,7 @@
-// netlify/functions/submit-order.js - With Google Sheets integration
+// netlify/functions/submit-order.js - With Google Sheets integration and PDF generation
 const sgMail = require("@sendgrid/mail");
 const { google } = require("googleapis");
+const puppeteer = require("puppeteer");
 
 // Configure SendGrid
 console.log("SENDGRID_API_KEY exists:", !!process.env.SENDGRID_API_KEY);
@@ -82,9 +83,14 @@ exports.handler = async (event, context) => {
 
     console.log("Processed order data:", orderData);
 
-    // Send email (without PDF attachment for now)
+    // Step 1: Generate PDF
+    console.log("Generating PDF...");
+    const pdfBuffer = await generatePayrollPDF(orderData);
+    console.log("PDF generated successfully");
+
+    // Step 2: Send email with PDF attachment
     console.log("Sending confirmation email...");
-    await sendConfirmationEmail(orderData);
+    await sendConfirmationEmail(orderData, pdfBuffer);
     console.log("Email sent successfully");
 
     // Update Google Sheets
@@ -117,7 +123,7 @@ exports.handler = async (event, context) => {
   }
 };
 
-async function sendConfirmationEmail(orderData) {
+async function sendConfirmationEmail(orderData, pdfBuffer) {
   // Create payment schedule text
   let paymentSchedule = "";
   if (orderData.paymentType === "plan") {
@@ -177,12 +183,12 @@ async function sendConfirmationEmail(orderData) {
         <div style="background: #fff3cd; border: 1px solid #ffeaa7; padding: 1rem; border-radius: 8px; margin: 2rem 0;">
           <h3 style="color: #856404; margin-top: 0;">⚠️ Important - Next Steps:</h3>
           <ol style="margin: 0; padding-left: 20px;">
-            <li><strong>Contact payroll</strong> to arrange salary deduction</li>
-            <li><strong>Email:</strong> <a href="mailto:payroll@twoa.ac.nz" style="color: #667eea;">payroll@twoa.ac.nz</a></li>
-            <li><strong>Include</strong> your order number: ${orderData.orderNumber}</li>
+            <li><strong>Print</strong> the attached salary deduction form</li>
+            <li><strong>Sign</strong> the form where indicated</li>
+            <li><strong>Email</strong> the signed form to: <a href="mailto:payroll@twoa.ac.nz" style="color: #667eea;">payroll@twoa.ac.nz</a></li>
           </ol>
           <p style="margin: 1rem 0 0 0; font-size: 14px; color: #856404;">
-            <strong>Note:</strong> PDF forms will be available soon. For now, please contact payroll directly.
+            <strong>Note:</strong> Your order will not be processed until the signed salary deduction form is received by payroll.
           </p>
         </div>
 
@@ -204,6 +210,14 @@ async function sendConfirmationEmail(orderData) {
     },
     subject: `Order Confirmation - ${orderData.orderNumber} - Te Mata Wānanga Apparel`,
     html: emailContent,
+    attachments: [
+      {
+        content: pdfBuffer.toString("base64"),
+        filename: `Salary_Deduction_Form_${orderData.orderNumber}.pdf`,
+        type: "application/pdf",
+        disposition: "attachment",
+      },
+    ],
   };
 
   await sgMail.send(msg);
@@ -256,4 +270,278 @@ async function updateSpreadsheet(orderData) {
     console.error("Error updating spreadsheet:", error);
     // Don't throw error - we don't want to fail the entire process if spreadsheet update fails
   }
+}
+
+async function generatePayrollPDF(orderData) {
+  let browser = null;
+
+  try {
+    // Launch browser (Railway configuration)
+    browser = await puppeteer.launch({
+      headless: true,
+      args: ["--no-sandbox", "--disable-setuid-sandbox"],
+    });
+
+    const page = await browser.newPage();
+
+    // Generate HTML for PDF that matches the template exactly
+    const htmlContent = generatePayrollHTML(orderData);
+
+    // Set content and generate PDF
+    await page.setContent(htmlContent, { waitUntil: "networkidle0" });
+
+    const pdfBuffer = await page.pdf({
+      format: "A4",
+      printBackground: true,
+      margin: {
+        top: "20mm",
+        right: "15mm",
+        bottom: "20mm",
+        left: "15mm",
+      },
+    });
+
+    return pdfBuffer;
+  } finally {
+    if (browser) {
+      await browser.close();
+    }
+  }
+}
+
+function generatePayrollHTML(orderData) {
+  // Calculate payment date text
+  let paymentDateText = "";
+  if (orderData.paymentType === "plan") {
+    paymentDateText = "13/08/2025 (First Payment - 3 installments)";
+  } else if (orderData.paymentDate && orderData.paymentDate !== "N/A") {
+    paymentDateText = `${orderData.paymentDate} (Payment in Full)`;
+  } else {
+    paymentDateText = "To be determined";
+  }
+
+  // Generate items table rows to match the template
+  const itemsRows = orderData.items
+    .map((item) => {
+      let description = "";
+      if (item.name === "T-Shirt") {
+        description = "Apakura – Te Mata Wānanga T-Shirt";
+      } else if (item.name === "Crewneck") {
+        description = "Apakura – Te Mata Wānanga Crew";
+      } else {
+        description = `Apakura – Te Mata Wānanga ${item.name}`;
+      }
+
+      return `
+      <tr>
+        <td style="padding: 12px; border: 1px solid #333;">${description}</td>
+        <td style="padding: 12px; border: 1px solid #333; text-align: center;">${item.size}</td>
+        <td style="padding: 12px; border: 1px solid #333; text-align: center;">${item.quantity}</td>
+        <td style="padding: 12px; border: 1px solid #333; text-align: right;">$${(item.price * item.quantity).toFixed(2)}</td>
+      </tr>
+    `;
+    })
+    .join("");
+
+  return `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="UTF-8">
+      <title>Salary Deduction Form - Te Mata Wānanga</title>
+      <style>
+        body {
+          font-family: Arial, sans-serif;
+          margin: 0;
+          padding: 20px;
+          color: #333;
+          line-height: 1.4;
+          font-size: 12pt;
+        }
+
+        .form-container {
+          max-width: 800px;
+          margin: 0 auto;
+        }
+
+        .header {
+          background-color: #c41e3a;
+          color: white;
+          text-align: center;
+          padding: 15px;
+          margin-bottom: 0;
+          font-weight: bold;
+          font-size: 14pt;
+        }
+
+        .notice {
+          background-color: white;
+          border: 2px solid #c41e3a;
+          border-top: none;
+          padding: 15px;
+          text-align: center;
+          font-style: italic;
+          margin-bottom: 20px;
+        }
+
+        .info-table {
+          width: 100%;
+          border-collapse: collapse;
+          margin-bottom: 20px;
+        }
+
+        .info-table td {
+          border: 2px solid #333;
+          padding: 12px;
+          vertical-align: top;
+        }
+
+        .info-header {
+          background-color: #c41e3a;
+          color: white;
+          font-weight: bold;
+          width: 40%;
+        }
+
+        .items-table {
+          width: 100%;
+          border-collapse: collapse;
+          margin-bottom: 20px;
+        }
+
+        .items-table th {
+          background-color: #c41e3a;
+          color: white;
+          padding: 12px;
+          border: 1px solid #333;
+          font-weight: bold;
+        }
+
+        .items-table td {
+          border: 1px solid #333;
+          padding: 12px;
+        }
+
+        .total-row {
+          background-color: #c41e3a;
+          color: white;
+          font-weight: bold;
+        }
+
+        .payment-section {
+          margin: 30px 0;
+        }
+
+        .payment-header {
+          background-color: #c41e3a;
+          color: white;
+          padding: 12px;
+          font-weight: bold;
+          border: 2px solid #333;
+        }
+
+        .payment-value {
+          border: 2px solid #333;
+          border-top: none;
+          padding: 20px;
+          min-height: 40px;
+        }
+
+        .signature-section {
+          margin-top: 40px;
+        }
+
+        .signature-table {
+          width: 100%;
+          border-collapse: collapse;
+        }
+
+        .signature-table td {
+          border: 2px solid #333;
+          padding: 12px;
+          vertical-align: bottom;
+        }
+
+        .signature-header {
+          background-color: #c41e3a;
+          color: white;
+          font-weight: bold;
+        }
+
+        .signature-space {
+          height: 60px;
+        }
+
+        @media print {
+          .form-container {
+            max-width: none;
+          }
+          body {
+            margin: 0;
+            padding: 10px;
+          }
+        }
+      </style>
+    </head>
+    <body>
+      <div class="form-container">
+        <div class="header">
+          APAKURA TE MATA WĀNANGA KĀKAHU SALARY/WAGE DEDUCTION FORM
+        </div>
+
+        <div class="notice">
+          Please ensure you have filled the online form to order you kākahu and that this form<br>
+          is sent to payroll@twoa.ac.nz
+        </div>
+
+        <table class="info-table">
+          <tr>
+            <td class="info-header">Kaimahi Name</td>
+            <td>${orderData.kaimahiName}</td>
+            <td class="info-header">Employee #</td>
+            <td>${orderData.employeeNumber}</td>
+          </tr>
+          <tr>
+            <td class="info-header">Campus</td>
+            <td colspan="3">${orderData.campus}</td>
+          </tr>
+        </table>
+
+        <table class="items-table">
+          <thead>
+            <tr>
+              <th>Description</th>
+              <th>Size</th>
+              <th>Quantity</th>
+              <th>Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${itemsRows}
+            <tr class="total-row">
+              <td colspan="3" style="text-align: right; padding: 12px;"><strong>Overall Total</strong></td>
+              <td style="text-align: right; padding: 12px;"><strong>$${orderData.total.toFixed(2)}</strong></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="payment-section">
+          <div class="payment-header">Date to commence payments</div>
+          <div class="payment-value">${paymentDateText}</div>
+        </div>
+
+        <table class="signature-table">
+          <tr>
+            <td class="signature-header">Kaimahi signature</td>
+            <td class="signature-header">Date</td>
+          </tr>
+          <tr>
+            <td class="signature-space"></td>
+            <td class="signature-space"></td>
+          </tr>
+        </table>
+      </div>
+    </body>
+    </html>
+  `;
 }
