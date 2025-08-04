@@ -192,7 +192,7 @@ async function sendConfirmationEmail(orderData, pdfBuffer) {
             <li><strong>Include</strong> your order number: ${orderData.orderNumber}</li>
           </ol>
           <p style="margin: 1rem 0 0 0; font-size: 14px; color: #856404;">
-            <strong>Note:</strong> PDF form generation temporarily unavailable. Please contact leon.green@twoa.ac.nz directly for your salary deduction form.
+            <strong>Note:</strong> Download your Salary DeductionForm here: https://drive.google.com/file/d/1VA__HNu87PLl6KWMq5a49DxFI2zQ3PyH/view?usp=sharing. Please contact leon.green@twoa.ac.nz directly if the PDF form is unavailable.
           </p>
           `}
         </div>
