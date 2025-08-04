@@ -83,12 +83,18 @@ exports.handler = async (event, context) => {
 
     console.log("Processed order data:", orderData);
 
-    // Step 1: Generate PDF
-    console.log("Generating PDF...");
-    const pdfBuffer = await generatePayrollPDF(orderData);
-    console.log("PDF generated successfully");
+    // Step 1: Generate PDF (with fallback)
+    let pdfBuffer = null;
+    try {
+      console.log("Generating PDF...");
+      pdfBuffer = await generatePayrollPDF(orderData);
+      console.log("PDF generated successfully");
+    } catch (error) {
+      console.error("PDF generation failed:", error);
+      console.log("Continuing without PDF attachment...");
+    }
 
-    // Step 2: Send email with PDF attachment
+    // Step 2: Send email (with or without PDF attachment)
     console.log("Sending confirmation email...");
     await sendConfirmationEmail(orderData, pdfBuffer);
     console.log("Email sent successfully");
@@ -182,6 +188,7 @@ async function sendConfirmationEmail(orderData, pdfBuffer) {
 
         <div style="background: #fff3cd; border: 1px solid #ffeaa7; padding: 1rem; border-radius: 8px; margin: 2rem 0;">
           <h3 style="color: #856404; margin-top: 0;">⚠️ Important - Next Steps:</h3>
+          ${pdfBuffer ? `
           <ol style="margin: 0; padding-left: 20px;">
             <li><strong>Print</strong> the attached salary deduction form</li>
             <li><strong>Sign</strong> the form where indicated</li>
@@ -190,6 +197,16 @@ async function sendConfirmationEmail(orderData, pdfBuffer) {
           <p style="margin: 1rem 0 0 0; font-size: 14px; color: #856404;">
             <strong>Note:</strong> Your order will not be processed until the signed salary deduction form is received by payroll.
           </p>
+          ` : `
+          <ol style="margin: 0; padding-left: 20px;">
+            <li><strong>Contact payroll</strong> to arrange salary deduction</li>
+            <li><strong>Email:</strong> <a href="mailto:payroll@twoa.ac.nz" style="color: #667eea;">payroll@twoa.ac.nz</a></li>
+            <li><strong>Include</strong> your order number: ${orderData.orderNumber}</li>
+          </ol>
+          <p style="margin: 1rem 0 0 0; font-size: 14px; color: #856404;">
+            <strong>Note:</strong> PDF form generation temporarily unavailable. Please contact leon.green@twoa.ac.nz directly for your salary deduction form.
+          </p>
+          `}
         </div>
 
         <div style="text-align: center; margin-top: 2rem; padding: 1rem; background: #f8f9fa; border-radius: 8px;">
@@ -210,15 +227,19 @@ async function sendConfirmationEmail(orderData, pdfBuffer) {
     },
     subject: `Order Confirmation - ${orderData.orderNumber} - Te Mata Wānanga Apparel`,
     html: emailContent,
-    attachments: [
+  };
+
+  // Add PDF attachment if generation was successful
+  if (pdfBuffer) {
+    msg.attachments = [
       {
         content: pdfBuffer.toString("base64"),
         filename: `Salary_Deduction_Form_${orderData.orderNumber}.pdf`,
         type: "application/pdf",
         disposition: "attachment",
       },
-    ],
-  };
+    ];
+  }
 
   await sgMail.send(msg);
 }
@@ -279,7 +300,17 @@ async function generatePayrollPDF(orderData) {
     // Launch browser (Railway configuration)
     browser = await puppeteer.launch({
       headless: true,
-      args: ["--no-sandbox", "--disable-setuid-sandbox"],
+      executablePath: '/usr/bin/chromium',
+      args: [
+        "--no-sandbox",
+        "--disable-setuid-sandbox",
+        "--disable-dev-shm-usage",
+        "--disable-accelerated-2d-canvas",
+        "--no-first-run",
+        "--no-zygote",
+        "--single-process",
+        "--disable-gpu"
+      ],
     });
 
     const page = await browser.newPage();
