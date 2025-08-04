@@ -1245,7 +1245,7 @@
                 // Call Netlify Function (works in Replit too)
                 console.log('Calling submit-order function...');
                 
-                const response = await fetch('/api/submit-order', {
+                const response = await fetch('/.netlify/functions/submit-order', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
