@@ -121,14 +121,12 @@ async function sendConfirmationEmail(orderData, pdfBuffer) {
   // Create payment schedule text
   let paymentSchedule = "";
   if (orderData.paymentType === "plan") {
-    const thirdAmount = (orderData.total / 3).toFixed(2);
-    const remainderAmount = (orderData.total - thirdAmount * 2).toFixed(2);
+    const halfAmount = (orderData.total / 2).toFixed(2);
     paymentSchedule = `
       <h3>Payment Plan Schedule:</h3>
       <ul>
-        <li><strong>Payment 1:</strong> 13/08/2025 - $${thirdAmount} (33%)</li>
-        <li><strong>Payment 2:</strong> 27/08/2025 - $${thirdAmount} (33%)</li>
-        <li><strong>Payment 3:</strong> 10/09/2025 - $${remainderAmount} (34%)</li>
+        <li><strong>Payment 1:</strong> 27/08/2025 - $${halfAmount} (50%)</li>
+        <li><strong>Payment 2:</strong> 10/09/2025 - $${halfAmount} (50%)</li>
       </ul>
     `;
   } else if (orderData.paymentDate && orderData.paymentDate !== "N/A") {

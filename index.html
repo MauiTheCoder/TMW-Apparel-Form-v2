@@ -999,9 +999,8 @@
                 paymentDateSelection.innerHTML = `
                     <h3 style="margin-bottom: 1rem;">Payment Plan Details</h3>
                     <div style="background: rgba(0, 212, 170, 0.1); padding: 1rem; border-radius: 10px; text-align: left;">
-                        <p><strong>Payment 1:</strong> 13/08/2025 (33%)</p>
-                        <p><strong>Payment 2:</strong> 27/08/2025 (33%)</p>
-                        <p><strong>Payment 3:</strong> 10/09/2025 (34%)</p>
+                        <p><strong>Payment 1:</strong> 27/08/2025 (50%)</p>
+                        <p><strong>Payment 2:</strong> 10/09/2025 (50%)</p>
                         <p style="font-size: 0.9rem; opacity: 0.8; margin-top: 0.5rem;">
                             <strong>All payments must be completed by 10/09/2025</strong>
                         </p>
@@ -1189,14 +1188,12 @@
             html += `<div class="cart-total">Total: $${total.toFixed(2)}</div>`;
 
             if (selectedPaymentType === 'plan') {
-                const thirdAmount = (total / 3).toFixed(2);
-                const remainderAmount = (total - (thirdAmount * 2)).toFixed(2);
+                const halfAmount = (total / 2).toFixed(2);
                 html += `
                     <div style="margin-top: 1rem; padding: 1rem; background: rgba(0, 212, 170, 0.1); border-radius: 10px;">
                         <h4>Payment Plan:</h4>
-                        <p><strong>Payment 1:</strong> 13/08/2025 - $${thirdAmount} (33%)</p>
-                        <p><strong>Payment 2:</strong> 27/08/2025 - $${thirdAmount} (33%)</p>
-                        <p><strong>Payment 3:</strong> 10/09/2025 - $${remainderAmount} (34%)</p>
+                        <p><strong>Payment 1:</strong> 27/08/2025 - $${halfAmount} (50%)</p>
+                        <p><strong>Payment 2:</strong> 10/09/2025 - $${halfAmount} (50%)</p>
                     </div>
                 `;
             } else if (selectedPaymentType === 'full' && selectedPaymentDate) {
