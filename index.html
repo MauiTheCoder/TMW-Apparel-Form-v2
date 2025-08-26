@@ -799,7 +799,7 @@
                     <input type="radio" name="paymentType" value="plan">
                     <div>
                         <div style="font-size: 1.2rem; font-weight: 600;">Payment Plan</div>
-                        <div style="font-size: 0.9rem; opacity: 0.8;">Split into multiple payments</div>
+                        <div style="font-size: 0.9rem; opacity: 0.8;">Single payment on 10/09/2025</div>
                     </div>
                 </label>
                 
@@ -994,15 +994,14 @@
             const paymentDateSelection = document.getElementById('paymentDateSelection');
             
             if (type === 'plan') {
-                selectedPaymentDate = '13/08/2025'; // Default first payment date
+                selectedPaymentDate = '10/09/2025'; // Single payment date
                 paymentDateSelection.style.display = 'block';
                 paymentDateSelection.innerHTML = `
                     <h3 style="margin-bottom: 1rem;">Payment Plan Details</h3>
                     <div style="background: rgba(0, 212, 170, 0.1); padding: 1rem; border-radius: 10px; text-align: left;">
-                        <p><strong>Payment 1:</strong> 27/08/2025 (50%)</p>
-                        <p><strong>Payment 2:</strong> 10/09/2025 (50%)</p>
+                        <p><strong>Payment Date:</strong> 10/09/2025 (Full Payment)</p>
                         <p style="font-size: 0.9rem; opacity: 0.8; margin-top: 0.5rem;">
-                            <strong>All payments must be completed by 10/09/2025</strong>
+                            <strong>Payment due on 10/09/2025</strong>
                         </p>
                     </div>
                 `;
@@ -1188,12 +1187,10 @@
             html += `<div class="cart-total">Total: $${total.toFixed(2)}</div>`;
 
             if (selectedPaymentType === 'plan') {
-                const halfAmount = (total / 2).toFixed(2);
                 html += `
                     <div style="margin-top: 1rem; padding: 1rem; background: rgba(0, 212, 170, 0.1); border-radius: 10px;">
                         <h4>Payment Plan:</h4>
-                        <p><strong>Payment 1:</strong> 27/08/2025 - $${halfAmount} (50%)</p>
-                        <p><strong>Payment 2:</strong> 10/09/2025 - $${halfAmount} (50%)</p>
+                        <p><strong>Payment Date:</strong> 10/09/2025 - $${total.toFixed(2)} (Full Payment)</p>
                     </div>
                 `;
             } else if (selectedPaymentType === 'full' && selectedPaymentDate) {
